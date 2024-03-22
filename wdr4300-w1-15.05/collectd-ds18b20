@@ -1,0 +1,38 @@
+#!/bin/sh
+  
+HOST=$COLLECTD_HOSTNAME
+INTERVAL=$COLLECTD_INTERVAL
+  
+[ -z "$INTERVAL" ] && INTERVAL=5
+INTERVAL=$(awk -v i=$INTERVAL 'BEGIN{print int(i)}')
+
+cd /sys/bus/w1/drivers/w1_slave_driver 
+while sleep $INTERVAL; do
+  for SENSOR in 28*; do
+    case $SENSOR in
+      28-00000771d603)
+        SENSORNAME=outside
+      ;;
+      28-0316b440a2ff)
+	# updated
+        SENSORNAME=hotwater
+      ;;
+      28-0416c43de1ff)
+	# updated
+        SENSORNAME=ambient
+      ;;
+      28-0316c20768ff)
+	# updated
+        SENSORNAME=coldwater
+      ;;
+      28-0416c44714ff)
+        SENSORNAME=cellar
+      ;;
+      *)
+        SENSORNAME=unknown-$SENSOR
+    esac
+    val=$(awk -F= '/t=/ {printf "%.02f\n", $2/1000}' $SENSOR/w1_slave)
+    echo "PUTVAL \"$HOST/exec-All\ sensors/temperature-$SENSORNAME\" interval=$INTERVAL N:$val"
+  done
+done
+

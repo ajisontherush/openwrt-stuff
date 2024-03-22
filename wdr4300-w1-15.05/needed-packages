@@ -1,0 +1,4 @@
+luci-app-statistics
+collectd-mod-exec
+kmod-w1-gpio-custom
+kmod-w1-slave-therm
